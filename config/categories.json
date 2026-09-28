@@ -1,0 +1,46 @@
+{
+  "Grand_Alger": {
+    "Alimentations_Boissons_non_alcoolisées": [],
+    "Habillement_Chaussures": [],
+    "Logements_Charges": [],
+    "Meubles_Articles_d_Ameublement": [],
+    "Santé_Hygiène_Corporelle": [],
+    "Transports_Communications": [],
+    "Education_Culture_Loisirs": [],
+    "Divers_NDA": []
+  },
+
+  "categories": {
+    "Biens_alimentaires": [],
+    "Biens_manufacturés": [],
+    "Services": []
+  },
+
+  "core": {
+    "Produits_alimentaires_industriels": [],
+    "Biens_manufacturés": [],
+    "Services": []
+  },
+
+  "national": {
+    "Alimentations_Boissons_non_alcoolisées": [],
+    "Habillement_Chaussures": [],
+    "Logements_Charges": [],
+    "Meubles_Articles_d_Ameublement": [],
+    "Santé_Hygiène_Corporelle": [],
+    "Transports_Communications": [],
+    "Education_Culture_Loisirs": [],
+    "Divers_NDA": []
+  },
+
+  "Produits_agricoles_frais": {
+        "Viandes_Abats_de_Mouton": [],
+        "Viandes_Abats_de_Bœufs": [],
+        "Viandes_de_poulet": [],
+        "Œufs": [],
+        "Poissons_Frais": [],
+        "Légumes_frais": [],
+        "Fruits_frais": [],
+        "Pommes_de_Terre": []
+      }
+}

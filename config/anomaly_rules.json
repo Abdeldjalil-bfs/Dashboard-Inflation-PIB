@@ -1,0 +1,15 @@
+{
+  "_lecture": "Règles de détection d'anomalies à la saisie. Les seuils sont exprimés en écarts-types robustes (z-score modifié, fondé sur la médiane et le MAD) : contrairement à l'écart-type classique, ils ne sont pas tirés par les valeurs extrêmes déjà présentes dans l'historique.",
+  "fenetre_glissante_mois": 36,
+  "fenetre_glissante_trimestres": 20,
+  "min_annees_comparaison_saisonniere": 4,
+  "z_score_modere": 2.5,
+  "z_score_marque": 4.0,
+  "messages": {
+    "modere": "Valeur inhabituelle pour « {colonne} » ({panier}) : écart de {z:.1f} écarts-types robustes par rapport à l'historique récent. Merci de vérifier la saisie.",
+    "marque": "Écart important détecté pour « {colonne} » ({panier}) : {z:.1f} écarts-types robustes, bien au-delà des variations habituelles de cette série. Confirmez explicitement cette valeur avant enregistrement."
+  },
+  "_plancher": "Planchers de significativité pratique. Sur une série très peu dispersée (un loyer qui ne bouge pas en août), un mouvement de 0,4 % vaut des dizaines d'écarts-types robustes : statistiquement vrai, pratiquement sans intérêt. En deçà de ces écarts, aucune alerte n'est levée quel que soit le z-score.",
+  "ecart_minimal_variation_pp": 0.5,
+  "ecart_minimal_niveau_pct": 1.0
+}

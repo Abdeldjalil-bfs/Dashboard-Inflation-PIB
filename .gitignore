@@ -1,0 +1,41 @@
+# Environnements virtuels
+.venv/
+venv/
+env/
+
+# Caches Python et outils
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+build/
+dist/
+
+# Éditeurs et système
+.idea/
+.vscode/
+.claude/
+.DS_Store
+Thumbs.db
+~$*.xlsx
+
+# Secrets et données sensibles
+.env
+.streamlit/secrets.toml
+data/users.xlsx
+
+# Données générées
+data/processed/*
+!data/processed/.gitkeep
+data/dashboard.db
+data/dashboard.db-journal
+data/raw/pib/PIB_saisies.xlsx
+
+# Sorties générées
+outputs/graphes/*
+!outputs/graphes/.gitkeep
+outputs/rapports/*
+!outputs/rapports/.gitkeep
+logs/

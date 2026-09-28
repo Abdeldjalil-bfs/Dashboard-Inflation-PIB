@@ -1,0 +1,19 @@
+# Dépendances d'exécution, versions épinglées (Python 3.11 ou plus récent).
+# Installation : pip install -r requirements.txt  (installe aussi le projet lui-même, ligne « -e . »)
+streamlit==1.64.0
+pandas==3.0.6
+numpy==2.4.6
+openpyxl==3.1.5
+plotly==5.24.1
+# Export PNG des graphiques pour le rapport. Les versions 1.x exigent Google Chrome
+# installé sur le poste ; les versions 0.x embarquent leur propre moteur de rendu.
+# 0.2.1 peut rester bloquée sous Windows : 0.1.0.post1 y est la version de référence.
+kaleido==0.2.1; platform_system != "Windows"
+kaleido==0.1.0.post1; platform_system == "Windows"
+reportlab==5.0.1
+pillow==12.3.0
+bcrypt==5.0.0
+pdfplumber==0.11.10
+requests==2.33.1
+urllib3==2.6.3
+-e .

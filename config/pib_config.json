@@ -1,0 +1,199 @@
+{
+  "_lecture": "Schéma du module PIB. Aucune pondération ici (contrairement à weights.json pour l'inflation) : le PIB est une somme directe de valeurs ajoutées. Ce fichier fixe les fichiers, les feuilles, la correspondance ONS -> secteurs canoniques, l'ordre d'affichage et les libellés. backend/pib/lecture_ons.py le lit : aucun libellé ONS n'est codé en dur dans le code.",
+  "_lecture_chemins": "Les chemins des fichiers (offre, demande, journal des saisies, fichier miroir de calculs) sont dans config/settings.py, comme pour l'inflation.",
+  "feuilles": {
+    "_lecture": "Onglets ONS : PIB_N = prix courants, PIB_R = volumes. Même disposition de colonnes ; en-tête en ligne 4 (1-based), données à partir de la ligne 5. Le titre de l'onglet réel (lignes 1 à 3) sert à détecter la nature des volumes.",
+    "nominal": "PIB_N",
+    "reel": "PIB_R",
+    "ligne_entete": 4
+  },
+  "unite_source": "millions DA",
+  "diviseur_affichage": 1000,
+  "unite_affichage": "milliards DZD",
+  "secteurs_offre": [
+    {
+      "cle": "Hydrocarbures",
+      "libelle": "Hydrocarbures",
+      "colonnes_ons": [
+        "Extraction d'hydrocarbures et services annexes"
+      ]
+    },
+    {
+      "cle": "Agriculture",
+      "libelle": "Agriculture",
+      "colonnes_ons": [
+        "Agriculture et pêche"
+      ]
+    },
+    {
+      "cle": "Industrie_hors_hydrocarbures",
+      "libelle": "Industrie hors hydrocarbures",
+      "colonnes_ons": [
+        "Branche Unité Fictive (BUF)",
+        "Autres industries extractives",
+        "Industries manufacturières",
+        "Production et distribution d'électricité. de gaz"
+      ]
+    },
+    {
+      "cle": "BTPH",
+      "libelle": "BTPH",
+      "colonnes_ons": [
+        "Construction"
+      ]
+    },
+    {
+      "cle": "Services",
+      "libelle": "Services",
+      "colonnes_ons": [
+        "Total services"
+      ]
+    }
+  ],
+  "secteur_hydrocarbures": "Hydrocarbures",
+  "impots_nets_produits": {
+    "cle": "Impots_nets_produits",
+    "libelle": "Impôts nets sur les produits",
+    "colonnes_ons": [
+      "Impôts sur les  importations",
+      "Autres impôts sur  produits nets de subventions"
+    ]
+  },
+  "colonne_pib_offre": "Produit Intérieur Brut",
+  "postes_demande": [
+    {
+      "cle": "Consommation_menages",
+      "libelle": "Consommation des ménages",
+      "signe": 1,
+      "colonne_ons": "Consommation Finale des Ménages"
+    },
+    {
+      "cle": "Consommation_administrations",
+      "libelle": "Consommation publique",
+      "signe": 1,
+      "colonne_ons": "Consommation Finale des Administrations Publiques"
+    },
+    {
+      "cle": "FBCF",
+      "libelle": "Investissement (FBCF)",
+      "signe": 1,
+      "colonne_ons": "FBCF"
+    },
+    {
+      "cle": "Variation_stocks",
+      "libelle": "Variation de stocks",
+      "signe": 1,
+      "colonne_ons": "Variation des Stocks"
+    },
+    {
+      "cle": "Exportations",
+      "libelle": "Exportations",
+      "signe": 1,
+      "colonne_ons": "Exportations"
+    },
+    {
+      "cle": "Importations",
+      "libelle": "Importations",
+      "signe": -1,
+      "colonne_ons": "Importations"
+    }
+  ],
+  "colonne_pib_demande": "Produit Intérieur Brut",
+  "_lecture_contributions_demande": "Postes affichés dans le graphique des contributions (optique demande). La variation de stocks en volume du fichier ONS est inexploitable (elle répète chaque année les valeurs de la première année) : elle est absorbée par la ligne résiduelle, calculée pour que la somme reboucle sur la croissance du PIB.",
+  "contributions_demande": [
+    {
+      "cle": "Consommation_menages",
+      "libelle": "Consommation des ménages"
+    },
+    {
+      "cle": "Consommation_administrations",
+      "libelle": "Consommation publique"
+    },
+    {
+      "cle": "FBCF",
+      "libelle": "Investissement (FBCF)"
+    },
+    {
+      "cle": "Exportations_nettes",
+      "libelle": "Exportations nettes (X − M)"
+    },
+    {
+      "cle": "Residuel",
+      "libelle": "Variations de stocks et écart statistique"
+    }
+  ],
+  "libelles_agregats": {
+    "PIB": "PIB total",
+    "HH": "Hors hydrocarbures",
+    "H": "Hydrocarbures",
+    "ecart_chainage": "Écart de chaînage",
+    "total_croissance": "Croissance du PIB réel",
+    "taux_investissement": "Taux d'investissement (FBCF / PIB)",
+    "taux_ouverture": "Taux d'ouverture ((X + M) / PIB)"
+  },
+  "methode_contributions": {
+    "_lecture": "'auto' : la méthode est détectée à partir des données (titre de l'onglet réel, puis test numérique d'additivité). 'prix_constants' ou 'chainage' force la méthode.",
+    "choix": "auto",
+    "mots_cles_chainage": [
+      "chain",
+      "chaîn",
+      "année précédente"
+    ],
+    "seuil_non_additivite_pct": 1.0
+  },
+  "tolerance_coherence_pp": 0.1,
+  "_lecture_correspondance_cnt": "Libellé d'un poste tel qu'extrait des PDF CNT de l'ONS -> clé canonique ci-dessus. Le PIB total (« Produit Intérieur Brut ») est reconnu d'office. À compléter après l'ingestion d'un premier vrai rapport : un poste absent de cette table reste en base et visible dans la page Séries, mais n'entre pas dans les calculs d'analyse (la page d'ingestion le signale).",
+  "correspondance_cnt": {},
+  "blocs_cnt": [
+    {
+      "bloc": "Valeurs",
+      "libelle": "Offre — valeurs ajoutées (prix courants)",
+      "type": "valeurs"
+    },
+    {
+      "bloc": "Croissance",
+      "libelle": "Offre — croissance réelle (t/t−4)",
+      "type": "croissance"
+    },
+    {
+      "bloc": "Emplois_valeurs",
+      "libelle": "Demande — emplois (prix courants)",
+      "type": "valeurs"
+    },
+    {
+      "bloc": "Emplois_croissance",
+      "libelle": "Demande — croissance réelle (t/t−4)",
+      "type": "croissance"
+    }
+  ],
+  "mesures_series": {
+    "valeurs": [
+      {
+        "cle": "niveau",
+        "libelle": "Niveau",
+        "unite": "Mds DZD",
+        "type": "niveau"
+      },
+      {
+        "cle": "glissement",
+        "libelle": "Glissement annuel nominal",
+        "unite": "%",
+        "type": "taux"
+      },
+      {
+        "cle": "part",
+        "libelle": "Part du PIB",
+        "unite": "%",
+        "type": "taux"
+      }
+    ],
+    "croissance": [
+      {
+        "cle": "brut",
+        "libelle": "Glissement annuel réel",
+        "unite": "%",
+        "type": "taux"
+      }
+    ]
+  }
+}

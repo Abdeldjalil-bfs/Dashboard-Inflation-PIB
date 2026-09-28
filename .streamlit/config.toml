@@ -1,0 +1,27 @@
+# Configuration Streamlit du tableau de bord.
+
+[server]
+headless = true
+port = 8501
+runOnSave = false
+# Taille maximale d'un fichier déposé (PDF CNT dans la page d'ingestion), en Mo.
+maxUploadSize = 50
+
+[browser]
+# Aucune statistique d'usage envoyée à Streamlit.
+gatherUsageStats = false
+
+[client]
+# La navigation est portée par l'application (barre latérale du module) :
+# la liste automatique des pages de Streamlit est masquée.
+showSidebarNavigation = false
+toolbarMode = "minimal"
+
+# Thème sombre forcé : sans lui, Streamlit peint ses widgets en clair
+# (champs gris, menus blancs) sous la charte navy.
+[theme]
+base = "dark"
+primaryColor = "#D7A943"
+backgroundColor = "#061A2E"
+secondaryBackgroundColor = "#0B2942"
+textColor = "#F5F7FA"

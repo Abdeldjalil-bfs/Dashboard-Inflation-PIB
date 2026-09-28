@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dashboard-inflation-pib"
+version = "1.0.0"
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+include = ["backend*", "config*", "app*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["scripts/preparer_fonds_de_carte.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B"]
+ignore = ["E501", "B008", "B904", "E731", "B905", "E741"]
+
+[tool.ruff.format]
+quote-style = "preserve"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning"]

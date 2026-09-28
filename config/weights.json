@@ -1,0 +1,64 @@
+{
+  "Grand_Alger": {
+    "Alimentations_Boissons_non_alcoolisées": 430.90,
+    "Habillement_Chaussures": 74.50,
+    "Logements_Charges": 92.90,
+    "Meubles_Articles_d_Ameublement": 49.60,
+    "Santé_Hygiène_Corporelle": 62.00,
+    "Transports_Communications": 158.50,
+    "Education_Culture_Loisirs": 45.20,
+    "Divers_NDA": 86.40
+  },
+
+  "Alimentations_Boissons_non_alcoolisées": {
+        "Pain_Céréales": 117.03,
+        "Viandes_Abats_de_Mouton": 57.22,
+        "Viandes_Abats_de_Bœufs": 10.82,
+        "Volailles_Lapins_Oeufs": 31.80,
+        "Poissons_Frais": 4.27,
+        "Viandes_Poissons_en_Conserves": 0.43,
+        "Légumes": 47.01,
+        "Fruits": 22.62,
+        "Pommes_de_Terre": 14.78,
+        "Laits_Fromages_Dérivés": 47.70,
+        "Huiles_Graisses": 25.55,
+        "Sucres_Produits_Sucrés": 14.95,
+        "Cafés_Thé_Infusion": 15.30,
+        "Boissons_non_Alcoolisées": 16.89,
+        "Autres_Produits_Alimentaires": 4.52
+    },
+
+  "categories": {
+    "Biens_alimentaires": 431.27,
+    "Biens_manufacturés": 398.91,
+    "Services": 169.82
+  },
+
+  "core": {
+    "Produits_alimentaires_industriels": 262.09,
+    "Biens_manufacturés": 398.91,
+    "Services": 169.82
+  },
+
+  "national": {
+    "Alimentations_Boissons_non_alcoolisées": 430.90,
+    "Habillement_Chaussures": 74.50,
+    "Logements_Charges": 92.90,
+    "Meubles_Articles_d_Ameublement": 49.60,
+    "Santé_Hygiène_Corporelle": 62.00,
+    "Transports_Communications": 158.50,
+    "Education_Culture_Loisirs": 45.20,
+    "Divers_NDA": 86.40
+  },
+
+  "Produits_agricoles_frais": {
+        "Viandes_Abats_de_Mouton": 57.22,
+        "Viandes_Abats_de_Bœufs": 10.82,
+        "Viandes_de_poulet": 24.09,
+        "Œufs": 7.71,
+        "Poissons_Frais": 4.27,
+        "Légumes_frais": 33.83,
+        "Fruits_frais": 16.46,
+        "Pommes_de_Terre": 14.78
+      }
+}

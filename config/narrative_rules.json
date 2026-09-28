@@ -1,0 +1,429 @@
+{
+  "_lecture": "Seuils et gabarits du moteur de rédaction du rapport mensuel. Aucun texte narratif n'est codé en dur dans backend/inflation/reporting.py : tout passe par ce fichier. Les gabarits sont au format str.format(**kwargs).",
+  "seuils_variation": {
+    "_lecture": "Bornes en points de pourcentage sur la variation d'un mois à l'autre de l'indicateur. Elles diffèrent par indicateur car le non-core est structurellement bien plus volatil que le core.",
+    "ipc_global": {
+      "seuil_modere": 0.2,
+      "seuil_marque": 0.6
+    },
+    "core": {
+      "seuil_modere": 0.15,
+      "seuil_marque": 0.45
+    },
+    "non_core": {
+      "seuil_modere": 0.8,
+      "seuil_marque": 2.5
+    }
+  },
+  "seuil_alerte_niveau": {
+    "_lecture": "Au-delà de ce niveau d'inflation en glissement annuel, le rapport qualifie le niveau d'élevé.",
+    "yoy_eleve": 4.0,
+    "yoy_tres_eleve": 7.0
+  },
+  "seuil_choc_groupe": {
+    "_lecture": "Variation mensuelle en % au-delà de laquelle un groupe est cité nommément, même s'il n'est pas premier contributeur.",
+    "valeur": 3.0
+  },
+  "tolerance_coherence_contributions": {
+    "_lecture": "Écart admis, en points de pourcentage, entre la somme des contributions et l'inflation du panier.",
+    "valeur": 0.1
+  },
+  "seuil_ecart_sous_jacentes": {
+    "_lecture": "Écart en points, entre sous-jacente 1 (hors agricoles frais) et sous-jacente 2 (hors réglementés et hors agricoles frais), au-delà duquel le rapport signale que les produits réglementés tirent le sous-jacent dans un sens distinct du reste.",
+    "valeur": 1.0
+  },
+  "seuil_focus_alimentaire": {
+    "_lecture": "Écart en points, entre le taux des agricoles frais et celui des alimentaires industriels, en deçà duquel les deux sont dits évoluer 'de façon comparable'.",
+    "valeur": 0.5
+  },
+  "periode_reference_statistiques": {
+    "_lecture": "Point de départ du régime de référence servant à calibrer moyenne et écart-type.",
+    "post_2015": "2015-01"
+  },
+  "qualificatifs": {
+    "_lecture": "Rendus de qualificatif_variation(). L'ordre va de la plus forte accélération à la plus forte décélération.",
+    "acceleration_marquee": "accélère nettement",
+    "acceleration_moderee": "accélère légèrement",
+    "stable": "reste globalement stable",
+    "deceleration_moderee": "ralentit légèrement",
+    "deceleration_marquee": "décélère nettement"
+  },
+  "gabarits": {
+    "ipc_global": {
+      "phrase_principale": "En {mois_libelle}, l'inflation {mode_libelle} s'établit à {valeur:.2f} %, après {valeur_precedente:.2f} % le mois précédent : l'indice des prix à la consommation {qualificatif} ({delta:+.2f} point).",
+      "comparaison_moyenne_haute": "Ce niveau demeure supérieur à la moyenne de longue période ({moyenne:.2f} %), de {ecart:+.2f} point.",
+      "comparaison_moyenne_basse": "Ce niveau demeure inférieur à la moyenne de longue période ({moyenne:.2f} %), de {ecart:+.2f} point.",
+      "comparaison_moyenne_proche": "Ce niveau se situe au voisinage de la moyenne de longue période ({moyenne:.2f} %).",
+      "alerte_niveau_eleve": "L'inflation reste au-dessus du seuil de {seuil:.1f} % retenu comme repère.",
+      "moyenne_ytd": "La moyenne des {nb_mois} premiers mois de {annee} s'établit à {moyenne_ytd:.2f} %."
+    },
+    "core_noncore": {
+      "_lecture": "Matrice à 4 cas. Le cas est choisi par texte_core_noncore() selon le sens de variation du core et du non-core.",
+      "cas_tension_generalisee": "La hausse est de nature généralisée : l'inflation sous-jacente {qualificatif_core} à {core:.2f} % ({delta_core:+.2f} point) tandis que la composante volatile {qualificatif_noncore} à {noncore:.2f} % ({delta_noncore:+.2f} point). La pression ne se limite donc pas aux produits frais.",
+      "cas_choc_volatil": "L'accélération provient essentiellement de la composante volatile, à {noncore:.2f} % ({delta_noncore:+.2f} point), alors que l'inflation sous-jacente {qualificatif_core} à {core:.2f} %. Le mouvement relève d'un choc d'offre sur les produits frais plutôt que d'une diffusion aux prix sous-jacents.",
+      "cas_diffusion_sous_jacente": "La dynamique est portée par l'inflation sous-jacente, qui {qualificatif_core} à {core:.2f} % ({delta_core:+.2f} point), tandis que la composante volatile {qualificatif_noncore} à {noncore:.2f} %. Ce profil traduit une diffusion de la hausse aux prix les moins sensibles aux aléas saisonniers.",
+      "cas_deceleration": "Le repli concerne l'inflation sous-jacente, qui {qualificatif_core} à {core:.2f} % ({delta_core:+.2f} point), la composante volatile s'établissant pour sa part à {noncore:.2f} % ({delta_noncore:+.2f} point).",
+      "ecart_core_noncore": "L'écart entre composante volatile et inflation sous-jacente atteint {ecart:.2f} point."
+    },
+    "contributions": {
+      "phrase_principale": "Sur les {inflation_totale:.2f} points d'inflation {mode_libelle}, les principaux moteurs sont {detail_positifs}.",
+      "element_positif": "{nom} ({contribution:+.2f} point, {part:.0f} % du mouvement)",
+      "phrase_negatifs": "À l'inverse, {detail_negatifs} {verbe} la progression d'ensemble.",
+      "element_negatif": "{nom} ({contribution:.2f} point)",
+      "aucun_negatif": "Aucun poste ne joue en sens contraire ce mois-ci.",
+      "aucun_positif": "Sur les {inflation_totale:.2f} points d'inflation {mode_libelle}, aucun poste ne pousse à la hausse ce mois-ci.",
+      "separateur": ", ",
+      "separateur_final": " et "
+    },
+    "par_groupe": {
+      "ouverture": "Le classement des contributions place {premier} en tête ({contribution_premiere:+.2f} point), devant {suivants}.",
+      "suivant": "{nom} ({contribution:+.2f} point)",
+      "choc_isole": "À signaler, {nom} enregistre une variation mensuelle de {variation:+.2f} % sur le mois, sans figurer parmi les premiers contributeurs : son poids dans le panier en limite l'effet d'ensemble.",
+      "aucun_choc": ""
+    },
+    "note_technique": {
+      "ecart_coherence": "Note technique — la somme des contributions s'écarte de {ecart:.2f} point de l'inflation du panier, au-delà de la tolérance de {tolerance:.2f} point. Les arrondis et d'éventuelles pondérations manquantes peuvent expliquer cet écart.",
+      "detail_partiel_agricole_frais": "Note technique — le détail par produit des agricoles frais ne repose que sur {n_disponibles} des {n_total} postes du panier sur cette période (les autres n'ont pas de source récente disponible) : la somme des contributions ne reconstitue donc pas exactement l'indice publié ce mois-ci."
+    },
+    "mode_libelle": {
+      "mom": "en glissement mensuel",
+      "yoy": "en glissement annuel"
+    },
+    "sous_jacentes": {
+      "_lecture": "Compare sous-jacente 1 (hors agricoles frais, = Core) et sous-jacente 2 (hors réglementés et hors agricoles frais).",
+      "phrase_principale": "L'inflation sous-jacente 1 (hors agricoles frais) s'établit à {core1:.2f} % {mode_libelle}, contre {core2:.2f} % pour la sous-jacente 2 (hors réglementés et hors agricoles frais également).",
+      "ecart_stable": "L'écart entre les deux mesures reste contenu ({ecart:.2f} point) : les produits réglementés ne tirent pas le sous-jacent dans un sens sensiblement différent du reste du panier.",
+      "ecart_marque": "L'écart entre les deux mesures se creuse à {ecart:.2f} point : les produits réglementés tirent l'inflation sous-jacente dans un sens distinct du reste du panier hors agricole frais."
+    },
+    "reglementes": {
+      "_lecture": "Taux agrégé uniquement : pas de détail par produit disponible (farine, café, essence...).",
+      "phrase": "Les produits réglementés enregistrent une variation {mode_libelle} de {valeur:+.2f} %, sans que le détail par produit ne soit disponible dans le périmètre actuel du dashboard."
+    },
+    "fci": {
+      "_lecture": "Mention contextuelle unique, indicateur de pression importée.",
+      "phrase": "À titre indicatif, l'indice des produits à fort contenu d'import affiche une variation {mode_libelle} de {valeur:+.2f} %, retenu comme indicateur de pression importée, sans décomposition supplémentaire faute de données plus fines."
+    },
+    "focus_alimentaire": {
+      "_lecture": "Compare agricoles frais et alimentaires industriels au sein des biens alimentaires.",
+      "phrase_frais_domine": "Au sein des biens alimentaires, le mouvement {mode_libelle} est porté principalement par les produits agricoles frais ({frais:+.2f} %), les produits alimentaires industriels évoluant plus modérément ({industriel:+.2f} %).",
+      "phrase_industriel_domine": "Au sein des biens alimentaires, le mouvement {mode_libelle} est porté principalement par les produits alimentaires industriels ({industriel:+.2f} %), les produits agricoles frais évoluant plus modérément ({frais:+.2f} %).",
+      "phrase_equivalent": "Au sein des biens alimentaires, produits agricoles frais ({frais:+.2f} %) et alimentaires industriels ({industriel:+.2f} %) évoluent {mode_libelle} de façon comparable."
+    },
+    "moyenne_comparee": {
+      "phrase": "{libelle} : moyenne annuelle de {actuelle:.2f} %, contre {precedente:.2f} % sur la même période l'an dernier — {qual}.",
+      "indisponible": "{libelle} : moyenne annuelle comparable indisponible."
+    }
+  },
+  "pib": {
+    "_lecture": "Seuils et gabarits du rapport trimestriel PIB (backend/inflation/reporting.py, fonctions *_pib). Aucun texte narratif PIB n'est codé en dur. Taux en %, écarts en points de pourcentage.",
+    "seuils_variation_croissance": {
+      "_lecture": "Variation de la croissance d'un trimestre à l'autre, en points, pour qualifier accélération / ralentissement (qualificatifs communs).",
+      "seuil_modere": 0.3,
+      "seuil_marque": 1.0
+    },
+    "seuils_niveau_croissance": {
+      "_lecture": "Bornes de lecture du niveau de croissance réelle (glissement annuel).",
+      "faible": 2.0,
+      "soutenue": 4.0
+    },
+    "seuil_ecart_hors_hydrocarbures": {
+      "_lecture": "Écart (points) entre croissance hors hydrocarbures et croissance totale au-delà duquel le rapport le commente.",
+      "valeur": 1.0
+    },
+    "nombre_trimestres_graphiques": 12,
+    "niveaux": {
+      "contraction": "en contraction",
+      "faible": "faible",
+      "moderee": "modérée",
+      "soutenue": "soutenue"
+    },
+    "gabarits": {
+      "synthese_hausse": "Au {trimestre}, le PIB réel progresse de {valeur:.1f} % en glissement annuel, après {valeur_precedente:.1f} % le trimestre précédent : la croissance, {niveau}, {qualificatif} ({delta:+.1f} pt).",
+      "synthese_baisse": "Au {trimestre}, le PIB réel recule de {valeur_abs:.1f} % en glissement annuel, après {valeur_precedente:.1f} % le trimestre précédent ({delta:+.1f} pt).",
+      "comparaison_moyenne": "La croissance moyenne observée depuis {debut_historique} est de {moyenne:.1f} % (écart-type {ecart_type:.1f} pt) : le trimestre se situe {position} de cette moyenne.",
+      "position_au_dessus": "au-dessus",
+      "position_en_dessous": "en dessous",
+      "position_proche": "au voisinage",
+      "moyenne_depuis_t1": "Depuis le début de {annee}, la croissance moyenne s'établit à {moyenne:.1f} %, contre {moyenne_precedente:.1f} % sur la même période de {annee_precedente}.",
+      "hydrocarbures_hausse": "Hors hydrocarbures, la croissance atteint {hh:.1f} %, et le secteur des hydrocarbures progresse de {h:.1f} %.",
+      "hydrocarbures_baisse": "Hors hydrocarbures, la croissance atteint {hh:.1f} %, alors que le secteur des hydrocarbures recule de {h_abs:.1f} %.",
+      "ecart_hors_hydrocarbures": "L'activité hors hydrocarbures s'écarte de {ecart:+.1f} pt de la croissance d'ensemble : les hydrocarbures {sens} le rythme global.",
+      "sens_hydrocarbures_freinent": "freinent",
+      "sens_hydrocarbures_soutiennent": "soutiennent",
+      "deflateur": "Le déflateur implicite du PIB varie de {inflation:+.1f} % sur un an, ce qui situe la croissance nominale à {nominal:.1f} %.",
+      "offre_positifs": "Du côté de l'offre, les principaux moteurs de la croissance sont {detail}.",
+      "offre_aucun_positif": "Du côté de l'offre, aucun secteur ne contribue positivement à la croissance ce trimestre.",
+      "demande_positifs": "Du côté de la demande, la croissance est portée par {detail}.",
+      "demande_aucun_positif": "Du côté de la demande, aucun emploi final ne contribue positivement ce trimestre.",
+      "negatifs": "À l'inverse, {detail} {verbe} la croissance.",
+      "verbe_singulier": "freine",
+      "verbe_pluriel": "freinent",
+      "element": "{nom} ({contribution:+.2f} pt)",
+      "separateur": ", ",
+      "separateur_final": " et ",
+      "ratios": "Le taux d'investissement s'établit à {investissement:.1f} % du PIB ({delta_investissement:+.1f} pt sur un an) et le taux d'ouverture commerciale à {ouverture:.1f} % ({delta_ouverture:+.1f} pt).",
+      "note_ecart_chainage": "Note technique — la somme des contributions sectorielles s'écarte de {ecart:+.2f} pt de la croissance publiée, au-delà de la tolérance de {tolerance:.2f} pt. Cet écart est structurel en volumes chaînés (non-additivité, taux ONS arrondis à 0,1 pt) ; il figure comme « écart de chaînage » dans le graphique.",
+      "note_residuel": "La ligne « variations de stocks et écart statistique » ({residuel:+.2f} pt) est calculée en résiduel : la variation de stocks en volume publiée n'est pas exploitable.",
+      "methode_chainage": "Contributions calculées selon le SCN 2008 : part nominale de la composante en t−4 multipliée par sa croissance en volume (volumes chaînés détectés dans les fichiers ONS).",
+      "methode_prix_constants": "Contributions calculées à prix constants : variation du volume de la composante rapportée au PIB réel de t−4."
+    },
+    "structure": {
+      "titre_document": "Rapport trimestriel PIB",
+      "couverture_titre": "Rapport trimestriel\ndu produit intérieur brut",
+      "couverture_pied": "Glissement annuel (t/t−4) — dernier trimestre retenu : {trimestre}. Document produit automatiquement ; voir l'annexe méthodologique.",
+      "chiffres": {
+        "pib": "Croissance réelle",
+        "hh": "Hors hydrocarbures",
+        "h": "Hydrocarbures",
+        "inflation": "Inflation implicite"
+      },
+      "sections": {
+        "synthese": [
+          "1 · Synthèse du trimestre",
+          "Rythme de l'activité au {trimestre_long}, total et hors hydrocarbures."
+        ],
+        "offre": [
+          "2 · Optique offre — secteurs d'activité",
+          "Contributions des secteurs à la croissance du PIB réel et structure de la production."
+        ],
+        "demande": [
+          "3 · Optique demande — emplois finals",
+          "Contributions des emplois finals à la croissance, investissement et ouverture."
+        ],
+        "annexe": [
+          "4 · Annexe méthodologique",
+          ""
+        ]
+      },
+      "blocs": {
+        "methode": "Méthode des contributions",
+        "glossaire": "Glossaire"
+      },
+      "legendes": {
+        "croissance": "Croissance réelle — hydrocarbures, hors hydrocarbures et PIB total (glissement annuel)",
+        "nominal_reel": "Croissance nominale et réelle par agrégat",
+        "waterfall": "Contributions sectorielles à la croissance du PIB réel",
+        "parts": "Structure du PIB nominal par secteur",
+        "demande": "Contributions de la demande à la croissance du PIB réel",
+        "ratios": "Taux d'investissement et taux d'ouverture commerciale"
+      },
+      "tracabilite": {
+        "genere_le": "Généré le",
+        "derniere_donnee": "Dernier trimestre retenu",
+        "methode": "Détection de la méthode",
+        "source": "Source des données"
+      },
+      "glossaire": [
+        [
+          "PIB réel",
+          "Produit intérieur brut en volume, aux prix de l'année précédente chaînés (ONS)."
+        ],
+        [
+          "Glissement annuel (YoY)",
+          "Variation par rapport au même trimestre de l'année précédente (t/t−4)."
+        ],
+        [
+          "Glissement trimestriel (QoQ)",
+          "Variation par rapport au trimestre précédent (t/t−1)."
+        ],
+        [
+          "Déflateur implicite",
+          "PIB nominal / PIB réel × 100 ; sa variation mesure l'inflation implicite."
+        ],
+        [
+          "Contribution",
+          "Part de la croissance du PIB réel expliquée par une composante, en points de pourcentage."
+        ],
+        [
+          "Écart de chaînage",
+          "Différence entre la croissance publiée et la somme des contributions, due à la non-additivité des volumes chaînés et à l'arrondi des taux ONS."
+        ],
+        [
+          "Hors hydrocarbures",
+          "Ensemble des secteurs hors extraction d'hydrocarbures, impôts nets sur les produits compris."
+        ],
+        [
+          "Millésime",
+          "Version d'une donnée selon le rapport qui l'a publiée ; le tableau de bord retient la plus récente."
+        ]
+      ],
+      "avertissement": "Le texte d'analyse de ce rapport est produit automatiquement par un moteur de règles déterministe appliqué aux comptes nationaux trimestriels de l'ONS : aucune interprétation humaine ni aucun modèle de langage n'intervient. Les seuils et gabarits sont paramétrés dans config/narrative_rules.json (bloc « pib »). Ce document ne constitue pas une position officielle de l'institution."
+    }
+  },
+  "rapport_inflation": {
+    "_lecture": "Structure éditoriale du rapport mensuel (titres, chapeaux, légendes, libellés, annexe). Les jetons {…} sont remplis à partir des données : aucune date n'est écrite ici.",
+    "titre_document": "Rapport mensuel d'inflation",
+    "couverture_titre": "Rapport mensuel\nd'inflation",
+    "couverture_pied": "Glissement annuel — dernière donnée disponible : {derniere_donnee}. Document produit automatiquement ; voir l'annexe méthodologique.",
+    "couverture_chiffres": [
+      [
+        "Indice global · national",
+        "national"
+      ],
+      [
+        "Sous-jacente 1",
+        "core"
+      ],
+      [
+        "Sous-jacente 2",
+        "core2"
+      ]
+    ],
+    "sections": {
+      "synthese": [
+        "1 · Synthèse du mois",
+        "Cadrage global de l'évolution des prix à la consommation en {mois}, au niveau national, avant le détail par composante des sections suivantes."
+      ],
+      "yoy": [
+        "2 · Inflation globale — glissement annuel",
+        "Décomposition de l'inflation annuelle par grande masse (alimentaire, manufacturé, services), puis par mesure de sous-jacent."
+      ],
+      "moyenne": [
+        "3 · Inflation en moyenne annuelle",
+        "Même logique causale que la section précédente, appliquée à la moyenne depuis janvier plutôt qu'au glissement annuel ponctuel."
+      ],
+      "mom": [
+        "4 · Inflation en glissement mensuel",
+        "Le mouvement du dernier mois connu, avec les mêmes focus que les sections précédentes."
+      ],
+      "groupes": [
+        "5 · Les huit groupes du panier",
+        "Évolution et contribution des huit groupes de produits, pour le Grand Alger puis pour l'ensemble du territoire national, sur les douze derniers mois."
+      ],
+      "categories": [
+        "6 · Biens alimentaires, biens manufacturés et services",
+        "Découpage du panier Grand Alger en trois grandes catégories, utile pour distinguer les prix des biens de ceux des services, sur les douze derniers mois."
+      ],
+      "annexe": [
+        "7 · Annexe méthodologique",
+        ""
+      ]
+    },
+    "blocs": {
+      "glissement_mensuel": "Glissement mensuel",
+      "glissement_annuel": "Glissement annuel",
+      "moyenne_annuelle": "Moyenne annuelle",
+      "trois_masses": "Décomposition en trois masses",
+      "focus_alimentaire": "Focus produits alimentaires",
+      "focus_agricole_frais": "Focus produits agricoles frais",
+      "focus_sous_jacentes": "Focus inflations sous-jacentes",
+      "focus_reglementes": "Focus produits réglementés",
+      "cause_principale": "Cause principale",
+      "grand_alger": "Grand Alger",
+      "national": "National",
+      "glossaire": "Glossaire",
+      "perimetres": "Périmètre des paniers",
+      "limite": "Limite de granularité"
+    },
+    "note_cause_moyenne": "La cause reprend le classement des contributions du dernier mois disponible : le moteur ne recalcule pas de décomposition dédiée à la moyenne glissante elle-même (voir annexe).",
+    "indicateurs": {
+      "national_mom": "IPC national · mensuel",
+      "national_yoy": "IPC national · annuel",
+      "core": "Sous-jacente 1",
+      "core2": "Sous-jacente 2",
+      "global_national": "IPC global · national",
+      "core_long": "Sous-jacente 1 · hors agricoles frais",
+      "core2_long": "Sous-jacente 2 · hors réglementés, hors agricoles frais",
+      "grand_alger_yoy": "Grand Alger · annuel",
+      "grand_alger_mom": "Grand Alger · mensuel",
+      "national_annuel": "National · annuel",
+      "national_mensuel": "National · mensuel",
+      "categories_yoy": "Catégories · annuel",
+      "categories_mom": "Catégories · mensuel"
+    },
+    "legendes": {
+      "decomposition_yoy": "Agricoles frais, sous-jacente 1, réglementés, sous-jacente 2 et IPC global — glissement annuel",
+      "decomposition_moyenne_annuelle": "IPC global, sous-jacente 1 et sous-jacente 2 — moyenne annuelle glissante",
+      "decomposition_mom": "Agricoles frais, alimentaires industriels, manufacturés, services et IPC global — glissement mensuel",
+      "groupes_grand_alger_yoy": "Évolution des huit groupes — Grand Alger",
+      "contrib_grand_alger_yoy": "Contribution des groupes en points de pourcentage — Grand Alger",
+      "groupes_national_yoy": "Évolution des huit groupes — National",
+      "contrib_national_yoy": "Contribution des groupes en points de pourcentage — National",
+      "categories_yoy": "Évolution des trois catégories — glissement annuel (Grand Alger)",
+      "contrib_categories_yoy": "Contribution des catégories en points de pourcentage (Grand Alger)"
+    },
+    "contributeur": "{signe}{contribution:.2f} pt · {part:.0f} % du mouvement",
+    "tracabilite": {
+      "genere_le": "Généré le",
+      "derniere_donnee": "Dernière donnée disponible",
+      "empreinte": "Empreinte des pondérations (md5 tronqué de config/weights.json)"
+    },
+    "annexe": {
+      "glossaire": [
+        [
+          "IPC",
+          "Indice des prix à la consommation : moyenne des indices élémentaires du panier, pondérée par le poids de chaque poste."
+        ],
+        [
+          "MoM",
+          "Glissement mensuel : variation de l'indice par rapport au mois précédent."
+        ],
+        [
+          "YoY",
+          "Glissement annuel : variation de l'indice par rapport au même mois de l'année précédente."
+        ],
+        [
+          "Core / Sous-jacente 1",
+          "Inflation sous-jacente : panier hors produits agricoles frais, moins sensible aux aléas saisonniers et climatiques."
+        ],
+        [
+          "Sous-jacente 2",
+          "Hors produits réglementés ET hors produits agricoles frais : exclut en plus les prix administrés, pour isoler la partie du sous-jacent la plus sensible à la demande."
+        ],
+        [
+          "Non-core / Agricoles frais",
+          "Composante volatile : viandes, œufs, poissons, légumes et fruits frais, pommes de terre."
+        ],
+        [
+          "Produits réglementés",
+          "Produits à prix administrés (carburants, produits subventionnés). Indice agrégé uniquement."
+        ],
+        [
+          "Fort contenu d'import (FCI)",
+          "Produits dont le prix dépend fortement de composantes importées ; indicateur de pression importée, indice agrégé uniquement."
+        ],
+        [
+          "pp",
+          "Point de pourcentage. Une contribution en pp indique de combien un poste explique l'inflation d'ensemble ; la somme des contributions reconstitue l'inflation du panier."
+        ]
+      ],
+      "perimetres": [
+        [
+          "Grand Alger",
+          "Huit groupes de produits, périmètre de la wilaya d'Alger."
+        ],
+        [
+          "National",
+          "Huit groupes de produits, ensemble du territoire."
+        ],
+        [
+          "Catégories",
+          "Biens alimentaires, biens manufacturés et services — panier Grand Alger."
+        ],
+        [
+          "Sous-jacente 1 (Core)",
+          "Produits alimentaires industriels, biens manufacturés, services — panier Grand Alger."
+        ],
+        [
+          "Sous-jacente 2",
+          "Hors produits réglementés et hors produits agricoles frais — national uniquement."
+        ],
+        [
+          "Non-core (agricoles frais)",
+          "Viandes, œufs, poissons, légumes et fruits frais, pommes de terre — panier Grand Alger."
+        ],
+        [
+          "Réglementés",
+          "Produits à prix administrés — national uniquement."
+        ],
+        [
+          "Fort contenu d'import",
+          "Produits sensibles aux prix importés — national uniquement."
+        ]
+      ],
+      "limite_granularite": "Les focus « produits réglementés » et « produits à fort contenu d'import » restent au niveau agrégé : le détail par produit n'est pas disponible dans le périmètre actuel. Le focus « agricoles frais » descend au niveau produit ; {n_sans_source} postes n'ont plus de source de données depuis {debut_lacune} : le classement des contributeurs de ces mois-là ne porte que sur les postes disponibles, ce que le corps du rapport signale explicitement.",
+      "limite_granularite_complete": "Les focus « produits réglementés » et « produits à fort contenu d'import » restent au niveau agrégé : le détail par produit n'est pas disponible dans le périmètre actuel. Le focus « agricoles frais » descend au niveau produit, avec les huit postes renseignés.",
+      "avertissement": "Le texte d'analyse de ce rapport est produit automatiquement par un moteur de règles déterministe appliqué aux séries calculées : aucune interprétation humaine ni aucun modèle de langage n'intervient. Les seuils de qualification des variations sont paramétrés dans config/narrative_rules.json et calibrés sur le régime observé depuis {debut_regime}. Ce document ne constitue pas une position officielle de l'institution."
+    }
+  }
+}
