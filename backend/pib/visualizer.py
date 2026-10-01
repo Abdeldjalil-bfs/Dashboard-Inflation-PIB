@@ -305,6 +305,69 @@ def tracer_contributions_offre(
     return fig
 
 
+def tracer_contributions_hydro_hh(
+    contributions: pd.DataFrame,
+    secteur_hydrocarbures: str,
+    libelles: dict,
+    libelle_total: str,
+    mode: str = "yoy",
+    export_png: bool = False,
+) -> go.Figure:
+    """
+    Vue simplifiée à deux composantes de tracer_contributions_offre : la
+    contribution des hydrocarbures d'un côté, celle de tout le reste (hors
+    hydrocarbures — secteurs, impôts nets, écart de chaînage regroupés)
+    de l'autre, en barres, et la croissance du PIB réel en courbe. Les deux
+    barres somment exactement à cette courbe, par construction.
+    """
+    x = contributions.index
+    autres = [c for c in contributions.columns if c not in (secteur_hydrocarbures, "Croissance_PIB")]
+    hh = contributions[autres].sum(axis=1, min_count=len(autres))
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Bar(
+            x=x,
+            y=contributions[secteur_hydrocarbures],
+            name=libelles.get(secteur_hydrocarbures, secteur_hydrocarbures),
+            marker_color=PALETTE_SERIES[7],
+            hovertemplate=libelles.get(secteur_hydrocarbures, secteur_hydrocarbures) + " : %{y:+.2f} pt<extra></extra>",
+        )
+    )
+    fig.add_trace(
+        go.Bar(
+            x=x,
+            y=hh,
+            name=libelles.get("HH", "Hors hydrocarbures"),
+            marker_color=PALETTE_SERIES[0],
+            hovertemplate=libelles.get("HH", "Hors hydrocarbures") + " : %{y:+.2f} pt<extra></extra>",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=contributions["Croissance_PIB"],
+            name=libelle_total,
+            mode="lines+markers",
+            line=dict(color=COLOR_TEXTE, width=2.4),
+            marker=dict(size=5),
+            hovertemplate=libelle_total + " : %{y:.2f} %<extra></extra>",
+        )
+    )
+    _habiller(
+        fig,
+        "Contributions hydrocarbures / hors hydrocarbures à la croissance du PIB réel — " + SUFFIXE_MODE[mode],
+        "Points de pourcentage",
+        " pt",
+        barmode="relative",
+        hauteur=440,
+    )
+    _axe_trimestres(fig, x)
+    if export_png:
+        _exporter(fig, f"pib_contributions_hydro_hh_{mode}.png")
+    return fig
+
+
 def tracer_parts_sectorielles(parts: pd.DataFrame, libelles: dict, export_png: bool = False) -> go.Figure:
     """Barres empilées à 100 % : part de chaque secteur dans le PIB nominal."""
     x = parts.index
@@ -383,6 +446,36 @@ def tracer_contributions_demande(
     _axe_trimestres(fig, x)
     if export_png:
         _exporter(fig, f"pib_contributions_demande_{mode}.png")
+    return fig
+
+
+def tracer_parts_demande(parts: pd.DataFrame, libelles: dict, export_png: bool = False) -> go.Figure:
+    """
+    Structure nominale de la demande, symétrique de
+    tracer_parts_sectorielles côté offre : barres empilées des parts du PIB
+    nominal, les importations apparaissant en négatif (barmode relative,
+    pas de plafond à 100 — contrairement à l'offre, une part peut être
+    négative ici).
+    """
+    x = parts.index
+    fig = go.Figure()
+    for i, colonne in enumerate(parts.columns):
+        nom = libelles.get(colonne, colonne)
+        fig.add_trace(
+            go.Bar(
+                x=x,
+                y=parts[colonne],
+                name=nom,
+                marker_color=PALETTE_SERIES[i % len(PALETTE_SERIES)],
+                hovertemplate=nom + " : %{y:+.1f} %<extra></extra>",
+            )
+        )
+    _habiller(
+        fig, "Structure nominale de la demande (parts du PIB en %)", "Part du PIB (%)", " %", barmode="relative", hauteur=460
+    )
+    _axe_trimestres(fig, x)
+    if export_png:
+        _exporter(fig, "pib_parts_demande.png")
     return fig
 
 

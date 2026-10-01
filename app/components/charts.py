@@ -6,6 +6,7 @@ affiche les valeurs de la série sous forme de tableau (dates les plus récentes
 en tête) avec un bouton d'export CSV.
 """
 
+import io
 import warnings
 
 import pandas as pd
@@ -13,6 +14,24 @@ import streamlit as st
 
 from app.components.theme import appliquer_theme_graphique
 from app.components.periode import format_mois
+
+MIME_XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+def tableau_vers_excel_tidy(tableau: pd.DataFrame, nom_valeur: str = "valeur") -> bytes:
+    """
+    Même tableau que l'export CSV, reformaté en tidy data (une ligne par
+    observation : date, série, valeur) plutôt qu'une colonne par série —
+    directement réutilisable pour une analyse statistique ou un outil de BI,
+    sans étape de reformatage préalable.
+    """
+    nom_index = tableau.index.name or "Date"
+    long = tableau.rename_axis(nom_index).reset_index().melt(id_vars=nom_index, var_name="serie", value_name=nom_valeur)
+    long = long.dropna(subset=[nom_valeur])
+    tampon = io.BytesIO()
+    with pd.ExcelWriter(tampon, engine="openpyxl") as writer:
+        long.to_excel(writer, index=False, sheet_name="donnees")
+    return tampon.getvalue()
 
 
 def figure_vers_tableau(fig, format_date=None):
@@ -78,13 +97,23 @@ def graphique_avec_tableau(
             st.caption("Aucune valeur à afficher.")
         else:
             st.dataframe(tableau, width="stretch", height=280)
-            st.download_button(
-                "Exporter en CSV",
-                data=tableau.to_csv(index=True).encode("utf-8-sig"),
-                file_name=nom_fichier + ".csv",
-                mime="text/csv",
-                key="csv_" + cle,
-            )
+            col_csv, col_xlsx = st.columns(2)
+            with col_csv:
+                st.download_button(
+                    "Exporter en CSV",
+                    data=tableau.to_csv(index=True).encode("utf-8-sig"),
+                    file_name=nom_fichier + ".csv",
+                    mime="text/csv",
+                    key="csv_" + cle,
+                )
+            with col_xlsx:
+                st.download_button(
+                    "Exporter en Excel (.xlsx)",
+                    data=tableau_vers_excel_tidy(tableau),
+                    file_name=nom_fichier + ".xlsx",
+                    mime=MIME_XLSX,
+                    key="xlsx_" + cle,
+                )
 
     fig = appliquer_theme_graphique(fig, hauteur=hauteur, titre=titre)
     st.plotly_chart(fig, width="stretch", key="graph_" + cle)
@@ -126,13 +155,23 @@ def graphique_puis_tableau(
             st.caption("Aucune valeur à afficher.")
         else:
             st.dataframe(tableau, width="stretch", height=300)
-            st.download_button(
-                "Exporter en CSV",
-                data=tableau.to_csv(index=True).encode("utf-8-sig"),
-                file_name=nom_fichier + ".csv",
-                mime="text/csv",
-                key="csv_" + cle,
-            )
+            col_csv, col_xlsx = st.columns(2)
+            with col_csv:
+                st.download_button(
+                    "Exporter en CSV",
+                    data=tableau.to_csv(index=True).encode("utf-8-sig"),
+                    file_name=nom_fichier + ".csv",
+                    mime="text/csv",
+                    key="csv_" + cle,
+                )
+            with col_xlsx:
+                st.download_button(
+                    "Exporter en Excel (.xlsx)",
+                    data=tableau_vers_excel_tidy(tableau),
+                    file_name=nom_fichier + ".xlsx",
+                    mime=MIME_XLSX,
+                    key="xlsx_" + cle,
+                )
     return figure
 
 

@@ -12,7 +12,7 @@ import pandas as pd
 import streamlit as st
 
 from backend.pib.calculator import valeur_et_delta, _config_pib
-from backend.pib.visualizer import tracer_contributions_demande, tracer_ratios
+from backend.pib.visualizer import tracer_contributions_demande, tracer_parts_demande, tracer_ratios
 from app.components.theme import (
     entete_page,
     separateur_dore,
@@ -44,10 +44,10 @@ with contenu:
     with col_gliss:
         glissement = st.selectbox(
             "Type de glissement",
-            options=["Annuel (T/T−4)", "Trimestriel (T/T−1)"],
+            options=["Glissement annuel (T/T−4)", "Glissement trimestriel (T/T−1)"],
             key="pib_demande_glissement",
         )
-    mode = "yoy" if glissement.startswith("Annuel") else "qoq"
+    mode = "yoy" if glissement.startswith("Glissement annuel") else "qoq"
 
     contributions = r["contributions_demande"][mode]
     publies = contributions.dropna().index
@@ -74,6 +74,36 @@ with contenu:
         "n'est pas exploitable, et c'est ce solde qui fait reboucler les barres sur la "
         "croissance. %s : %+.2f pt sur %.2f %%."
         % (libelles["Residuel"], format_trimestre(date_ref), derniere["Residuel"], derniere["Croissance_PIB"])
+    )
+
+    # ------------------------------------------- contributions (X et M distinguées)
+    titre_section("Contributions à la croissance réelle — exportations et importations distinguées")
+    colonnes_detail = ["Consommation_menages", "Consommation_administrations", "FBCF", "Exportations", "Importations", "Residuel"]
+    graphique_puis_tableau(
+        tracer_contributions_demande(fenetre, colonnes_detail, libelles, agregats["total_croissance"], mode),
+        cle="pib_contrib_demande_detail_" + mode,
+        nom_fichier="pib_contributions_demande_detail_" + mode,
+        format_date=format_trimestre,
+    )
+    note_technique(
+        "Mêmes contributions que le graphique précédent, mais les exportations et les "
+        "importations apparaissent séparément plutôt que nettées en « exportations nettes »."
+    )
+
+    # ------------------------------------------------------ structure nominale
+    titre_section("Structure nominale de la demande")
+    parts_demande = r["parts_demande"].loc[date_debut:date_fin].dropna()
+    graphique_puis_tableau(
+        tracer_parts_demande(parts_demande, libelles),
+        cle="pib_parts_demande",
+        nom_fichier="pib_parts_demande",
+        format_date=format_trimestre,
+    )
+    note_technique(
+        "Part de chaque poste dans le PIB nominal ; les importations apparaissent en "
+        "négatif puisqu'elles se soustraient du PIB (même principe que la structure du "
+        "PIB nominal par secteur, page Offre, mais la variation de stocks — inexploitable "
+        "— n'y figure pas : la somme des colonnes peut s'écarter légèrement de 100 %)."
     )
 
     # --------------------------------------------------------------- ratios

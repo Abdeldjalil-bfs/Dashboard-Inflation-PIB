@@ -88,3 +88,59 @@ def test_core_non_core(classeur):
     poids_f = pd.Series(POIDS["Produits_agricoles_frais"])
     attendu_f = (frais[poids_f.index] * poids_f).sum(axis=1) / poids_f.sum()
     assert (frais["IPC Non Core (%)"] - attendu_f).abs().max() < 1e-6
+
+
+def _fichier_complementaire(tmp_path, dates, valeurs):
+    """Onglet 'IPC_Catégories' minimal, au format large attendu par
+    _parser_bloc_large : une ligne 'Poids' puis une colonne par mois."""
+    from openpyxl import Workbook
+
+    chemin = tmp_path / "complementaire.xlsx"
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "IPC_Catégories"
+    ws.append(["Libellé", "Poids"] + list(dates))
+    ws.append(["Produits agricoles frais", 169.18] + list(valeurs))
+    wb.save(chemin)
+    wb.close()
+    return str(chemin)
+
+
+def test_completer_ipc_non_core_depuis_complementaire(classeur, tmp_path):
+    """
+    Cas réel : un sous-produit du panier agricole frais manque sur les
+    derniers mois dans le fichier source, 'IPC Non Core (%)' reste alors
+    vide (la moyenne pondérée exige tous les postes) — on reprend l'agrégat
+    déjà publié dans le fichier complémentaire pour ces mois précis, sans
+    jamais écraser une case déjà renseignée par la somme pondérée.
+    """
+    from openpyxl import load_workbook
+
+    C.calculer_ipc_core_noncore(classeur, "core", "Produits_agricoles_frais", DEBUT, FIN)
+
+    wb = load_workbook(classeur)
+    ws = wb["Produits_agricoles_frais"]
+    col_ipc = next(
+        c for c in range(1, ws.max_column + 1) if ws.cell(row=1, column=c).value == "IPC Non Core (%)"
+    )
+    lignes_manquantes = [ws.max_row - 1, ws.max_row]
+    dates_manquantes = [ws.cell(row=r, column=1).value for r in lignes_manquantes]
+    for r in lignes_manquantes:
+        ws.cell(row=r, column=col_ipc).value = None  # cell(..., value=None) ne vide pas la cellule : il faut l'attribut
+    wb.save(classeur)
+    wb.close()
+
+    valeurs_agregat = [123.45, 126.78]
+    complementaire = _fichier_complementaire(tmp_path, dates_manquantes, valeurs_agregat)
+
+    assert C.completer_ipc_non_core_depuis_complementaire(classeur, "Produits_agricoles_frais", complementaire) is True
+
+    frais = _feuille(classeur, "Produits_agricoles_frais")
+    for date, valeur in zip(dates_manquantes, valeurs_agregat):
+        assert frais.loc[pd.Timestamp(date), "IPC Non Core (%)"] == pytest.approx(valeur)
+
+    # Idempotent, et une case déjà renseignée (toutes les autres) n'est
+    # jamais écrasée : un second passage ne comble donc plus rien.
+    assert (
+        C.completer_ipc_non_core_depuis_complementaire(classeur, "Produits_agricoles_frais", complementaire) is False
+    )

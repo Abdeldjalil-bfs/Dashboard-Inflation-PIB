@@ -1185,10 +1185,30 @@ def pipeline_global(Fichier_de_donnees: str):
         date_fin=date_fin_globale.strftime("%Y-%m"),  # on prend la plus récente
     )
 
-    # --- 4) Indices complémentaires nationaux (Réglementés / FCI / Core 2),
-    # si le fichier complémentaire est présent.
+    # --- 3bis) Comblement du Non-Core quand un sous-produit du panier
+    # agricole frais manque dans le fichier source sur un mois donné (la
+    # moyenne pondérée de calculer_ipc_core_noncore exige alors tous les
+    # postes et laisse la case vide) : repris de l'agrégat déjà publié dans
+    # le fichier complémentaire. Sans ce comblement, l'inflation et les
+    # contributions non-core restent vides dès le premier poste manquant.
     from config.settings import FICHIER_DONNEES_COMPLEMENTAIRES
 
+    if os.path.exists(str(FICHIER_DONNEES_COMPLEMENTAIRES)):
+        comble = completer_ipc_non_core_depuis_complementaire(fichier_travail, "Produits_agricoles_frais")
+        if comble:
+            print("➡️ Comblement IPC Non Core depuis le fichier complémentaire")
+            date_fin_str = date_fin_globale.strftime("%Y-%m")
+            calculer_inflation_mom(fichier_travail, "Produits_agricoles_frais", date_debut, date_fin_str)
+            calculer_inflation_yoy(fichier_travail, "Produits_agricoles_frais", date_debut, date_fin_str)
+            calculer_contributions_core_noncore_mom(
+                fichier_travail, "core", "Produits_agricoles_frais", "categories", date_debut, date_fin_str
+            )
+            calculer_contributions_core_noncore_yoy(
+                fichier_travail, "core", "Produits_agricoles_frais", "categories", date_debut, date_fin_str
+            )
+
+    # --- 4) Indices complémentaires nationaux (Réglementés / FCI / Core 2),
+    # si le fichier complémentaire est présent.
     if os.path.exists(str(FICHIER_DONNEES_COMPLEMENTAIRES)):
         print("➡️ Pipeline Indices complémentaires nationaux (Réglementés / FCI / Core 2)")
         integrer_indices_complementaires_nationaux(Fichier_de_donnees)
@@ -1296,6 +1316,72 @@ def integrer_indices_complementaires_nationaux(nom_fichier: str, fichier_complem
         resultats[feuille] = calculer_inflation_yoy(fichier_calculs, feuille, date_debut, date_fin)
 
     return resultats
+
+
+def completer_ipc_non_core_depuis_complementaire(
+    fichier_calculs: str, feuille_non_core: str = "Produits_agricoles_frais", fichier_complementaire: str = None
+) -> bool:
+    """
+    Comble 'IPC Non Core (%)' sur les mois où calculer_ipc_core_noncore() a
+    produit une case vide — cas où au moins un sous-produit du panier
+    agricole frais manque dans le fichier source pour ce mois (la moyenne
+    pondérée exige alors tous les postes et renvoie NaN) : reprend
+    directement l'agrégat "Produits agricoles frais" déjà publié dans le
+    fichier complémentaire (même assiette de poids, 169,18), plutôt que de
+    laisser le mois vide dans tout le tableau de bord.
+
+    `fichier_calculs` : le fichier de calculs déjà résolu (comme pour
+    calculer_ipc_core_noncore — PAS le fichier brut, pas de passage par
+    fichier_de_travail ici).
+
+    Ne touche jamais une case déjà renseignée par la somme pondérée. Sans
+    effet si le fichier complémentaire est absent. Retourne True si au
+    moins une case a été comblée (pour savoir s'il faut recalculer les
+    indicateurs qui en dérivent — inflation et contributions non-core).
+    """
+    from config.settings import FICHIER_DONNEES_COMPLEMENTAIRES
+
+    if fichier_complementaire is None:
+        fichier_complementaire = str(FICHIER_DONNEES_COMPLEMENTAIRES)
+    if not os.path.exists(fichier_complementaire):
+        return False
+
+    categories_src = _parser_bloc_large(fichier_complementaire, "IPC_Catégories")
+    agregat = categories_src.get(_normaliser_libelle("Produits agricoles frais"))
+    if agregat is None:
+        return False
+
+    wb = load_workbook(fichier_calculs)
+    if feuille_non_core not in wb.sheetnames:
+        wb.close()
+        return False
+    ws = wb[feuille_non_core]
+
+    col_index = None
+    for col in range(1, ws.max_column + 1):
+        if ws.cell(row=1, column=col).value == "IPC Non Core (%)":
+            col_index = col
+            break
+    if col_index is None:
+        wb.close()
+        return False
+
+    comble = False
+    for row in range(2, ws.max_row + 1):
+        cell_date = ws.cell(row=row, column=1).value
+        if cell_date is None:
+            continue
+        if ws.cell(row=row, column=col_index).value is not None:
+            continue  # déjà une valeur (somme pondérée complète) : ne pas écraser
+        date_ligne = pd.Timestamp(cell_date).replace(day=1)
+        valeur = agregat["valeurs"].get(date_ligne)
+        if valeur is not None:
+            ws.cell(row=row, column=col_index, value=float(valeur))
+            comble = True
+
+    wb.save(fichier_calculs)
+    wb.close()
+    return comble
 
 
 def _normaliser_libelle(texte) -> str:

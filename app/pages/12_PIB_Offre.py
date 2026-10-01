@@ -43,10 +43,10 @@ with contenu:
     with col_gliss:
         glissement = st.selectbox(
             "Type de glissement",
-            options=["Annuel (T/T−4)", "Trimestriel (T/T−1)"],
+            options=["Glissement annuel (T/T−4)", "Glissement trimestriel (T/T−1)"],
             key="pib_offre_glissement",
         )
-    mode = "yoy" if glissement.startswith("Annuel") else "qoq"
+    mode = "yoy" if glissement.startswith("Glissement annuel") else "qoq"
 
     contributions = r["contributions_offre"][mode].dropna(how="all")
     publies = contributions.dropna().index

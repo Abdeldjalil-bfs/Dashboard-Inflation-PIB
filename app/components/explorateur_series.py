@@ -8,6 +8,7 @@ arrivent déjà chargées.
 import plotly.graph_objects as go
 import streamlit as st
 
+from app.components.charts import tableau_vers_excel_tidy, MIME_XLSX
 from app.components.theme import (
     titre_section,
     appliquer_theme_graphique,
@@ -156,10 +157,20 @@ def afficher_series(donnees, mode, unite, titre, titre_axe, format_date, periode
         tableau.index = [format_date(d) for d in tableau.index]
         tableau.index.name = "Date"
         st.dataframe(tableau, width="stretch", height=320)
-        st.download_button(
-            "Exporter en CSV",
-            data=tableau.to_csv(index=True).encode("utf-8-sig"),
-            file_name=nom_csv + ".csv",
-            mime="text/csv",
-            key="csv_" + cle,
-        )
+        col_csv, col_xlsx = st.columns(2)
+        with col_csv:
+            st.download_button(
+                "Exporter en CSV",
+                data=tableau.to_csv(index=True).encode("utf-8-sig"),
+                file_name=nom_csv + ".csv",
+                mime="text/csv",
+                key="csv_" + cle,
+            )
+        with col_xlsx:
+            st.download_button(
+                "Exporter en Excel (.xlsx)",
+                data=tableau_vers_excel_tidy(tableau),
+                file_name=nom_csv + ".xlsx",
+                mime=MIME_XLSX,
+                key="xlsx_" + cle,
+            )

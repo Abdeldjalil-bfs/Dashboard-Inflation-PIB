@@ -446,6 +446,20 @@ def calculer_ratios_demande(df_demande: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def calculer_parts_demande(df_demande: pd.DataFrame) -> pd.DataFrame:
+    """
+    Structure nominale de la demande : part (%) de chaque poste (hors
+    variation de stocks, inexploitable — voir calculer_contributions_demande)
+    dans le PIB nominal. Importations en négatif (signe de
+    pib_config.json) puisqu'elles se soustraient du PIB : la somme des
+    colonnes reconstitue 100 %, symétrique de calculer_parts_sectorielles()
+    côté offre.
+    """
+    pib = df_demande["PIB_nominal"]
+    postes = [p for p in _config_pib()["postes_demande"] if p["cle"] != "Variation_stocks"]
+    return pd.DataFrame({p["cle"]: p["signe"] * df_demande[f"{p['cle']}_nominal"] / pib * 100 for p in postes})
+
+
 # ===========================================================================
 # F — Statistiques d'appui au rapport
 # ===========================================================================
@@ -560,6 +574,7 @@ def pipeline_pib(
         "contributions_demande": {},
         "croissance_branches": calculer_croissance_par_branche(offre),
         "parts": calculer_parts_sectorielles(offre),
+        "parts_demande": calculer_parts_demande(demande),
         "ratios": calculer_ratios_demande(demande),
     }
 
@@ -587,6 +602,7 @@ def ecrire_fichier_calculs(resultats: dict, chemin: str) -> str:
         "demande_sources": resultats["demande"],
         "niveaux_deflateur": resultats["niveaux"].join(resultats["deflateur"].drop(columns="Deflateur")),
         "parts_sectorielles": resultats["parts"],
+        "parts_demande": resultats["parts_demande"],
         "ratios_demande": resultats["ratios"],
     }
     for mode in MODES:

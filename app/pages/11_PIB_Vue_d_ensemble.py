@@ -1,10 +1,11 @@
 """
 PIB — Vue macroéconomique globale et synthèse.
 
-Quatre cartes KPI (PIB total, croissance réelle, croissance hors
-hydrocarbures, déflateur), croissance réelle hydrocarbures / hors
-hydrocarbures / PIB total, puis croissance nominale vs réelle par agrégat.
-Mise en page et filtres uniquement : tous les calculs viennent de
+Quatre cartes KPI (PIB nominal, croissance réelle totale, croissance hors
+hydrocarbures, croissance hydrocarbures), croissance réelle hydrocarbures /
+hors hydrocarbures / PIB total, contributions hydrocarbures / hors
+hydrocarbures à la croissance, puis croissance nominale vs réelle par
+agrégat. Mise en page et filtres uniquement : tous les calculs viennent de
 backend.pib.calculator (via app.components.donnees_pib).
 """
 
@@ -12,7 +13,11 @@ import pandas as pd
 import streamlit as st
 
 from backend.pib.calculator import valeur_et_delta
-from backend.pib.visualizer import tracer_croissance_hydro_hh, tracer_nominal_vs_reel
+from backend.pib.visualizer import (
+    tracer_croissance_hydro_hh,
+    tracer_contributions_hydro_hh,
+    tracer_nominal_vs_reel,
+)
 from app.components.theme import (
     entete_page,
     separateur_dore,
@@ -40,7 +45,7 @@ with contenu:
     separateur_dore()
 
     r = charger_ou_arreter()
-    _lib_offre, _lib_demande, agregats = libelles_pib()
+    lib_offre, _lib_demande, agregats = libelles_pib()
 
     # ------------------------------------------------------------- filtres
     titre_section("Filtres")
@@ -48,10 +53,10 @@ with contenu:
     with col_gliss:
         glissement = st.selectbox(
             "Type de glissement",
-            options=["Annuel (T/T−4)", "Trimestriel (T/T−1)"],
+            options=["Glissement annuel (T/T−4)", "Glissement trimestriel (T/T−1)"],
             key="pib_glissement",
         )
-    mode = "yoy" if glissement.startswith("Annuel") else "qoq"
+    mode = "yoy" if glissement.startswith("Glissement annuel") else "qoq"
 
     croissance = r["croissance"][mode]
     publies = croissance["PIB_reel"].dropna().index
@@ -99,6 +104,7 @@ with contenu:
     for colonne, libelle, cle in (
         (k2, "Croissance réelle", "PIB_reel"),
         (k3, "Croissance hors hydrocarbures", "HH_reel"),
+        (k4, "Croissance hydrocarbures", "H_reel"),
     ):
         valeur, delta = valeur_et_delta(croissance[cle], date_ref)
         with colonne:
@@ -112,24 +118,6 @@ with contenu:
                 ),
                 unsafe_allow_html=True,
             )
-
-    deflateur, delta_defl = valeur_et_delta(r["deflateur"]["Inflation_implicite_" + mode], date_ref)
-    niveau_defl = r["deflateur"]["Deflateur"].get(date_ref)
-    with k4:
-        annee_base = r["deflateur"]["Deflateur"].dropna().index.min().year
-        st.markdown(
-            carte_kpi(
-                "Déflateur du PIB (base %d = 100)" % annee_base,
-                niveau_defl,
-                deflateur,
-                unite="",
-                unite_delta="% " + suffixe,
-                favorable_si_hausse=False,
-                decimales=1,
-                note="inflation implicite",
-            ),
-            unsafe_allow_html=True,
-        )
 
     # --------------------------------------------------------- graphique 1
     titre_section("Croissance réelle par agrégat")
@@ -148,6 +136,24 @@ with contenu:
             "(publiée dans le fichier Demande) est disponible, et les indicateurs "
             "s'arrêtent au dernier trimestre complet."
         )
+
+    # --------------------------------------------------------- graphique 1bis
+    titre_section("Contributions hydrocarbures / hors hydrocarbures")
+    contributions = r["contributions_offre"][mode].assign(
+        Croissance_PIB=r["coherence_offre"][mode]["Croissance_PIB"]
+    )
+    graphique_puis_tableau(
+        tracer_contributions_hydro_hh(
+            contributions.loc[date_debut:date_fin].dropna(),
+            "Hydrocarbures",
+            dict(lib_offre, HH=agregats["HH"]),
+            agregats["total_croissance"],
+            mode,
+        ),
+        cle="pib_contrib_hydro_hh_" + mode,
+        nom_fichier="pib_contributions_hydro_hh_" + mode,
+        format_date=format_trimestre,
+    )
 
     # --------------------------------------------------------- graphique 2
     titre_section("Nominal et réel")

@@ -241,7 +241,10 @@ Toutes les pages du module partagent la même ossature : en-tête (logo,
 compte connecté), navigation latérale (**Vue d'ensemble, Groupes,
 Catégories, Indice complémentaire, Rapport, Séries, Saisie**), une section
 « Filtres », puis les graphiques — chacun suivi de son tableau de valeurs,
-exportable en CSV depuis un panneau rétractable.
+exportable en CSV (format large, lecture visuelle) et en Excel (format
+tidy — une ligne par observation : date, série, valeur — directement
+réutilisable en analyse statistique ou en BI) depuis un panneau
+rétractable.
 
 ### 5.1 Vue d'ensemble
 
@@ -396,13 +399,17 @@ Saisie**), filtres, puis graphiques accompagnés de leur tableau.
 Niveau du PIB, croissance réelle totale et hors hydrocarbures, déflateur
 implicite.
 
-**Filtres :** **Type de glissement** — « Annuel (T/T−4) » ou « Trimestriel
-(T/T−1) » — et **Période** (raccourcis trimestriels, §6-note).
+**Filtres :** **Type de glissement** — « Glissement annuel (T/T−4) » ou
+« Glissement trimestriel (T/T−1) » — et **Période** (raccourcis
+trimestriels, §6-note).
 
-**Contenu :** quatre indicateurs clés (PIB nominal, croissance réelle,
-croissance hors hydrocarbures, déflateur), un graphique de croissance
-réelle par agrégat (hydrocarbures / hors hydrocarbures / PIB total), puis un
-graphique croissance nominale face à réelle (l'écart entre les deux mesure
+**Contenu :** quatre indicateurs clés (PIB nominal — valeur et croissance,
+croissance réelle totale, croissance hors hydrocarbures, croissance
+hydrocarbures), un graphique de croissance réelle par agrégat
+(hydrocarbures / hors hydrocarbures / PIB total), un graphique de
+contributions hydrocarbures / hors hydrocarbures à la croissance (deux
+barres qui somment exactement à la courbe du PIB réel), puis un graphique
+croissance nominale face à réelle (l'écart entre les deux mesure
 l'inflation implicite de chaque agrégat).
 
 ### 6.2 Offre
@@ -426,7 +433,12 @@ ménages, consommation publique, investissement (FBCF), exportations nettes
 (X − M), et une ligne résiduelle « variations de stocks et écart
 statistique » qui absorbe ce que l'ONS ne publie pas de façon exploitable
 en volume — la somme reboucle toujours exactement sur la croissance
-publiée. Puis taux d'investissement et taux d'ouverture commerciale.
+publiée. Un second graphique reprend les mêmes contributions en distinguant
+exportations et importations plutôt que leur seul solde net. Puis la
+structure nominale de la demande (part de chaque poste dans le PIB nominal,
+importations en négatif — symétrique de la structure du PIB nominal par
+secteur de la page Offre). Enfin, taux d'investissement et taux d'ouverture
+commerciale.
 
 **Filtres :** Type de glissement, Période.
 
